@@ -1,1 +1,1 @@
-# automated-trading-system-dashboard
+# Automated Trading System Dashboard
