@@ -4,11 +4,13 @@ import numpy as np
 from xata.client import XataClient
 import plotly.express as px
 import plotly.graph_objects as go
+from datetime import datetime
 import os
 
 is_local = os.getenv("IS_LOCAL")
 
-st.set_page_config(layout="wide", page_title="Analysis")
+st.set_page_config(
+    layout="wide", page_title="Automated Trading System Dashboard", page_icon="./favicon.png")
 
 xata = XataClient(
     db_url=os.getenv("XATA_DB_URL"),
@@ -17,28 +19,32 @@ xata = XataClient(
 
 
 @st.cache_data
-def load_data():
+def load_data(date):
     trades = []
+    df = None
 
-    records = xata.data().query("trades_v1", {
-        "page": {
-            "size": 1000
-        }
-    })
-
-    trades.extend(records["records"])
-
-    while records.has_more_results():
+    try:
         records = xata.data().query("trades_v1", {
             "page": {
-                "after": records.get_cursor(),
                 "size": 1000
             }
         })
         trades.extend(records["records"])
+        while records.has_more_results():
+            records = xata.data().query("trades_v1", {
+                "page": {
+                    "after": records.get_cursor(),
+                    "size": 1000
+                }
+            })
+            trades.extend(records["records"])
 
-    df = pd.DataFrame(trades)
-    df = df.drop(["xata", "id"], axis=1)
+        df = pd.DataFrame(trades)
+        df = df.drop(["xata", "id"], axis=1)
+        df.to_csv('./data/trades_v1.csv', index=False)
+    except Exception as e:
+        df = pd.read_csv('./data/trades_v1.csv')
+        print(e)
     return df
 
 
@@ -57,7 +63,7 @@ if 'strategies' not in st.session_state:
 if is_local == "1":
     original_df = pd.read_csv('./data/trades_v1.csv')
 else:
-    original_df = load_data()
+    original_df = load_data(datetime.now().strftime("%Y-%m-%d"))
 
 
 df = original_df.copy()
@@ -77,7 +83,6 @@ monthly_df = daily_df.resample("M").sum()
 # monthly_df.index = pd.to_datetime(monthly_df.index)
 # monthly_df = monthly_df.groupby("strategy").resample("M").sum().drop(
 #     "strategy", axis=1).reset_index().set_index("date")
-
 
 st.title("Automated Trading System Dashboard")
 st.markdown('#')
