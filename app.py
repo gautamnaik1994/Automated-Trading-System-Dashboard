@@ -7,6 +7,9 @@ import plotly.graph_objects as go
 from datetime import datetime
 import os
 
+from dotenv import load_dotenv
+load_dotenv()
+
 is_local = os.getenv("IS_LOCAL")
 
 st.set_page_config(
@@ -101,24 +104,25 @@ st.markdown('##')
 col1, col2, col3, col4, col5 = st.columns(5)
 
 with col1:
-    st.metric("Total PNL", f"₹{round(daily_df['net_pnl'].sum(), 2)}")
+    st.metric(
+        "Total PNL", f"₹{round(daily_df['net_pnl'].sum(), 2)}",  border=True, )
 
 with col2:
     st.metric("Last 1 day PNL",
-              f"₹{ round(daily_df['net_pnl'].tail(1).sum(), 2) }",
+              f"₹{round(daily_df['net_pnl'].tail(1).sum(), 2)}",
               delta=round(daily_df['net_pnl'].tail(1).sum() -
-                          daily_df['net_pnl'].tail(2).sum(), 2))
+                          daily_df['net_pnl'].tail(2).sum(), 2), border=True)
 
 with col3:
     st.metric("Last 7 days PNL",
-              f"₹{ round(daily_df['net_pnl'].tail(7).sum(), 2) }", delta=round(daily_df['net_pnl'].tail(7).sum() - daily_df['net_pnl'].tail(14).sum(), 2))
+              f"₹{round(daily_df['net_pnl'].tail(7).sum(), 2)}", delta=round(daily_df['net_pnl'].tail(7).sum() - daily_df['net_pnl'].tail(14).sum(), 2),  border=True)
 
 with col4:
     st.metric("Last 30 days PNL",
-              f"₹{round(daily_df['net_pnl'].tail(30).sum(), 2)}", delta=round(daily_df['net_pnl'].tail(30).sum() - daily_df['net_pnl'].tail(60).sum(), 2))
+              f"₹{round(daily_df['net_pnl'].tail(30).sum(), 2)}", delta=round(daily_df['net_pnl'].tail(30).sum() - daily_df['net_pnl'].tail(60).sum(), 2), border=True)
 
 with col5:
-    st.metric("Total trades", len(df))
+    st.metric("Total trades", len(df),  border=True)
 
 st.markdown("### Cumulative PNL")
 st.plotly_chart(px.line(daily_df, x=daily_df.index,
